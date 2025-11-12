@@ -1,0 +1,15 @@
+# C++ build artifacts
+build/
+*.o
+*.a
+*.so
+*.exe
+*.out
+lob_driver
+
+# Editor/OS files
+.DS_Store
+.vscode/
+
+# clangd
+.cache/
