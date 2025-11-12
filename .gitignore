@@ -9,3 +9,6 @@ build/
 # Editor/OS files
 .DS_Store
 .vscode/
+
+# clangd
+.cache/
