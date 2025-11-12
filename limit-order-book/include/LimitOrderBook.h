@@ -7,7 +7,7 @@
 class LimitOrderBook {
 public:
     LimitOrderBook() = default;
-    void add_order(const Order& order);
+    void add_order(Order order);
     void print_book() const;
 
 private:

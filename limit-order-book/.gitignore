@@ -5,6 +5,7 @@ build/
 *.so
 *.exe
 *.out
+lob_driver
 
 # Editor/OS files
 .DS_Store

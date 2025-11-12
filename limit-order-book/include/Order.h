@@ -7,13 +7,17 @@ enum class Side {
 };
 
 struct Order {
-    int id;
     Side side;
-    double price;
     int quantity;
+    int price;
 };
 
 inline std::ostream& operator<<(std::ostream& os, Side side) {
     os << (side == Side::BUY ? "BUY" : "SELL");
+    return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const Order& order) {
+    os << order.side << " " << order.quantity << " at " << order.price;
     return os;
 }
