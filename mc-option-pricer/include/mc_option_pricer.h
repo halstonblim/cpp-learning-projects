@@ -16,4 +16,4 @@ struct MCResult {
     double std_error;
 };
 
-MCResult price_mc(const MCParams& parms);
+MCResult price_european_callmc(const MCParams& parms);
