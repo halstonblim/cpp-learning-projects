@@ -17,6 +17,9 @@ public:
     RealType Variance() const {
         return count_ > 0 ? m2_ / count_ : 0;
     }
+    RealType SampleVariance() const {
+        return count_ > 1 ? m2_ / (count_ - 1) : 0;
+    }
     int64_t Count() const {
         return count_;
     };
