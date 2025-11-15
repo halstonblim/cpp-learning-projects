@@ -2,18 +2,22 @@
 
 #include <cstddef>
 
-struct MCParams {
-    double spot;
-    double strike;
-    double rate;
-    double vol;
-    double expiry; // T in years
-    std::size_t num_paths;
-};
+namespace MCOptionPricer {
 
-struct MCResult {
-    double price;
-    double std_error;
-};
+    struct MCParams {
+        double spot;
+        double strike;
+        double rate;
+        double vol;
+        double expiry; // T in years
+        std::size_t num_paths;
+    };
 
-MCResult price_european_callmc(const MCParams& parms);
+    struct MCResult {
+        double price;
+        double std_error;
+    };
+
+    MCResult price_european_call_mc(const MCParams& parms);
+
+}
