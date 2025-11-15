@@ -4,7 +4,7 @@ A C++ implementation of a Monte Carlo simulation for pricing European call optio
 ## Features
 
 - Monte Carlo simulation for European call option pricing
-- Computes call price by averaging monte carlo paths via Welford's algorithm for standard error estimation
+- Computes call price by averaging monte carlo paths via Welford's algorithm for mean and standard error
 - Unit tests with Google Test framework comparing Monte Carlo against Black Scholes formula
 
 ## Building
