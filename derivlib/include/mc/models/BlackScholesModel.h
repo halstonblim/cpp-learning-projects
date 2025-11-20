@@ -3,14 +3,13 @@
 #include "mc/models/IProcessModel.h"
 #include <cstdlib>
 #include <vector>
-#include <random>
 
 namespace derivlib::mc::models {
 
 class BlackScholesModel : public IProcessModel {
 public:
     BlackScholesModel(double spot, double rate, double vol);
-    double generate_path(double expiry, std::size_t num_steps, std::vector<double>& path, std::mt19937& rng) const override;
+    double generate_path(double expiry, std::vector<double>& path, const std::vector<double>& random_increments) const override;
 
 private:
     double spot_;
