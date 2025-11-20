@@ -10,7 +10,7 @@ class IProcessModel {
 public:
     virtual ~IProcessModel() = default;
 
-    virtual double generate_path(double expiry, std::size_t num_steps, std::vector<double>& path, std::mt19937& rng) const = 0;
+    virtual double generate_path(double expiry, std::vector<double>& path, const std::vector<double>& random_increments) const = 0;
 };
 
 }

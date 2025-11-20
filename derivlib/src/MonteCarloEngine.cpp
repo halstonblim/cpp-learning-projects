@@ -12,6 +12,4 @@ MonteCarloEngine::MonteCarloEngine(std::unique_ptr<models::IProcessModel> model,
     rng_.seed(rd());
 }
 
-// templated price mehtod is fully implemented in .h file
-
 }

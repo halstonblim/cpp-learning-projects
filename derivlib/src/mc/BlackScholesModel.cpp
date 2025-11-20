@@ -1,5 +1,4 @@
 #include "mc/models/BlackScholesModel.h"
-#include <random>
 #include <cmath>
 
 namespace derivlib::mc::models {
@@ -9,17 +8,14 @@ BlackScholesModel::BlackScholesModel(double spot, double rate, double vol) :
     vol_(vol),
     drift_(rate - 0.5 * vol * vol) {}    
 
-double BlackScholesModel::generate_path(double expiry, std::size_t num_steps, std::vector<double>& path, std::mt19937& rng) const {
-        std::normal_distribution<double> normal(0.0, 1.0);
+double BlackScholesModel::generate_path(double expiry, std::vector<double>& path, const std::vector<double>& random_increments) const {
+        std::size_t num_steps = random_increments.size();
         double dt = expiry / num_steps;
         double drift_dt = drift_ * dt;
-        double vol_dt = vol_ * std::sqrt(dt);
-        
-        path.resize(num_steps + 1);
+        double vol_dt = vol_ * std::sqrt(dt);        
         path[0] = spot_;
         for (std::size_t i = 1; i <= num_steps; ++i) {
-            double Z = normal(rng);            
-            path[i] = path[i-1] * std::exp(drift_dt + vol_dt * Z);            
+            path[i] = path[i-1] * std::exp(drift_dt + vol_dt * random_increments[i-1]);            
         }
         return path[num_steps];
     }
