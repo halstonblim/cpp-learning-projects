@@ -13,3 +13,6 @@ Testing/
 
 # clangd
 .cache/
+
+# test executables
+*_test
