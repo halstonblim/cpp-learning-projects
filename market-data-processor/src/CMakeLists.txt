@@ -5,5 +5,8 @@ target_include_directories(market_sim
     "${PROJECT_SOURCE_DIR}/include"
 )
 
-add_executable(market_simulator main.cpp)
-target_link_libraries(market_simulator PRIVATE market_sim)
+add_executable(market_simulator_lock_based main_lock_based.cpp)
+target_link_libraries(market_simulator_lock_based PRIVATE market_sim)
+
+add_executable(market_simulator_lock_free main_lock_free.cpp)
+target_link_libraries(market_simulator_lock_free PRIVATE market_sim)
