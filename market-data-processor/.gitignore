@@ -1,0 +1,13 @@
+# Build artifacts
+build/
+
+# Generated data files (re-generate with benchmark)
+data/*.csv
+data/*.png
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+

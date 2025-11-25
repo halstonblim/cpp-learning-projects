@@ -32,10 +32,22 @@ FetchContent_MakeAvailable(googlebenchmark)
 
 # --- Benchmark Executable ---
 # We create a dedicated executable just for measuring performance
-add_executable(queue_benchmark benchmarks/bench_latency.cpp)
+add_executable(singlethread_baseline benchmarks/singlethread_baseline.cpp)
 
 # Link against benchmark library and threads
-target_link_libraries(queue_benchmark PRIVATE benchmark::benchmark pthread)
+target_link_libraries(singlethread_baseline PRIVATE benchmark::benchmark pthread)
 
 # Include our headers (so we can find "lock_free_queue.hpp")
+target_include_directories(singlethread_baseline PRIVATE include)
+
+# --- Full System Simulation Benchmark ---
+add_executable(queue_benchmark benchmarks/queue_benchmark.cpp)
+
+target_link_libraries(queue_benchmark 
+    PRIVATE 
+    market_sim  # Links to your library (SignalEngine, MarketSim)
+    pthread
+)
+
+# Ensure it finds your headers
 target_include_directories(queue_benchmark PRIVATE include)

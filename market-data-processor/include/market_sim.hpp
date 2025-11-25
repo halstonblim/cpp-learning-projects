@@ -2,21 +2,19 @@
 #include "types.hpp"
 #include <random>
 
+// Generates synthetic market ticks with random walk pricing.
 class MarketSimulator {
 private:
-    // 1. Simulation State
     double current_price_ = 100.00;
 
-    // 2. Random Number Generation (Initialized in constructor)
     std::mt19937 gen_;
-    std::uniform_real_distribution<> price_dist_; // e.g., -0.01 to +0.01
-    std::uniform_int_distribution<> qty_dist_;    // e.g., 1 to 100
-    std::uniform_int_distribution<> side_dist_;   // 0 to 1
+    std::uniform_real_distribution<> price_dist_;   // Price change multiplier
+    std::uniform_int_distribution<> qty_dist_;      // Trade quantity
+    std::uniform_int_distribution<> side_dist_;     // BUY (0) or SELL (1)
 
 public:
-    // Constructor: Seeds the RNG
     MarketSimulator();
 
-    // Generate next tick (pure function effectively, updates internal state)
+    // Generates next tick, advancing internal state
     Tick next_tick();
 };
