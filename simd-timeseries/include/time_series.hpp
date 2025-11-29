@@ -8,11 +8,11 @@ public:
         data.resize(max_capacity);
     }
     void add_tick(double price);
-    [[nodiscard]]double get_mean() const;
-    [[nodiscard]]size_t size() const;
+    [[nodiscard]] double get_mean() const;
+    [[nodiscard]] double get_mean_simd() const;
+    [[nodiscard]] size_t size() const;
     [[nodiscard]] size_t capacity() const;    
     void clear();
-
     const double* get_data() const; // returns raw poiner to data
 
 private:

@@ -1,4 +1,5 @@
 #include "time_series.hpp"
+#include "simd_utils.hpp"  // AVX2 math utilities (contains <immintrin.h>)
 
 void TimeSeries::add_tick(double price) {
     data[head_] = price;
@@ -32,4 +33,13 @@ size_t TimeSeries::capacity() const {
 void TimeSeries::clear() {
     head_ = 0;
     is_full_ = false;
+}
+
+double TimeSeries::get_mean_simd() const {
+    size_t n = size();
+    if (n == 0) return 0.0;
+
+    // Delegate to the reusable SIMD utility
+    double total_sum = sum_avx2(data.data(), n);
+    return total_sum / n;
 }

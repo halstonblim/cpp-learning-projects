@@ -15,6 +15,9 @@ FetchContent_MakeAvailable(googletest)
 include_directories(include)
 
 add_library(timeseries_lib src/time_series.cpp)
+target_compile_options(timeseries_lib PRIVATE -mavx2)
+
+enable_testing()
 
 # We will add executables later
 add_subdirectory(tests)
