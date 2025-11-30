@@ -4,7 +4,7 @@
 
 // Fail at compile time if AVX2 isn't enabled
 #ifndef __AVX2__
-static_assert(false, "This project requires AVX2. Compile with -mavx2");
+#error "This project requires AVX2. Compile with -mavx2"
 #endif
 
 /**
