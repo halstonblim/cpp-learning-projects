@@ -2,10 +2,7 @@
 build/
 .cache/
 
-# Benchmark Data
-benchmark_data/*.csv
-benchmark_data/*.png
-!benchmark_data/.gitkeep
+# Benchmark Data (tracked for documentation)
 
 # Python
 __pycache__/

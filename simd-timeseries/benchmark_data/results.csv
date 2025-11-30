@@ -1,0 +1,20 @@
+2025-11-30T11:52:48-06:00
+Running ./build/benchmarks/stats_benchmark
+Run on (12 X 2600 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB
+  L1 Instruction 32 KiB
+  L2 Unified 256 KiB (x6)
+  L3 Unified 12288 KiB
+Load Average: 3.34, 2.70, 2.57
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+"BenchmarkScalarMean/8192",79364,8225.76,8183.52,ns,,,,,
+"BenchmarkScalarMean/32768",21228,33144.4,33021.2,ns,,,,,
+"BenchmarkScalarMean/262144",2661,271954,269806,ns,,,,,
+"BenchmarkScalarMean/2097152",283,2.46e+06,2.45298e+06,ns,,,,,
+"BenchmarkScalarMean/8388608",70,9.96904e+06,9.94126e+06,ns,,,,,
+"BenchmarkAVXMean/8192",340396,2024.99,2017.67,ns,,,,,
+"BenchmarkAVXMean/32768",83582,8667.28,8545.99,ns,,,,,
+"BenchmarkAVXMean/262144",10111,67346.4,66844.3,ns,,,,,
+"BenchmarkAVXMean/2097152",723,860208,856224,ns,,,,,
+"BenchmarkAVXMean/8388608",161,4.37368e+06,4.35417e+06,ns,,,,,
