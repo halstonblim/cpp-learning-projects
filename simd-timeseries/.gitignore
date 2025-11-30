@@ -1,0 +1,12 @@
+# Build artifacts
+build/
+.cache/
+
+# Benchmark Data
+benchmark_data/*.csv
+benchmark_data/*.png
+!benchmark_data/.gitkeep
+
+# Python
+__pycache__/
+.venv/
