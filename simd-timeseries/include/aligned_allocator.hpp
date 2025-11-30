@@ -9,6 +9,9 @@
  */
 template <typename T, std::size_t Alignment = 32>
 struct AlignedAllocator {
+    static_assert(Alignment >= sizeof(void*) && (Alignment & (Alignment - 1)) == 0,
+                  "Alignment must be a power of 2 and >= sizeof(void*)");
+    
     using value_type = T;
 
     // Tell compiler how to convert AlignedAllocator<T>
@@ -27,6 +30,9 @@ struct AlignedAllocator {
 
     // 3. Allocate: The core logic
     T* allocate(std::size_t n) {
+        if (n == 0) {
+            return nullptr;  // Standard behavior for zero-size allocation
+        }
         if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
             throw std::bad_alloc();
         }
@@ -50,11 +56,11 @@ struct AlignedAllocator {
 
 // Boilerplate comparison operators
 template <typename T, std::size_t AlignT, typename U, std::size_t AlignU>
-bool operator==(const AlignedAllocator<T, AlignT>&, const AlignedAllocator<U, AlignU>&) { 
+bool operator==(const AlignedAllocator<T, AlignT>&, const AlignedAllocator<U, AlignU>&) noexcept { 
     return AlignT == AlignU; 
 }
 
 template <typename T, std::size_t AlignT, typename U, std::size_t AlignU>
-bool operator!=(const AlignedAllocator<T, AlignT>&, const AlignedAllocator<U, AlignU>&) { 
+bool operator!=(const AlignedAllocator<T, AlignT>&, const AlignedAllocator<U, AlignU>&) noexcept { 
     return AlignT != AlignU; 
 }

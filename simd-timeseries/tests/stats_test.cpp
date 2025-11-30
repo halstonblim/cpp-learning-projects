@@ -21,6 +21,6 @@ TEST_F(TimeSeriesTest, HandlesWrapAround) {
     
     timeseries.add_tick(4.0); 
 
-    // Expect {2.0, 3.0, 4.0} -> Mean 3.0
+    // After wrap-around: array is {4.0, 2.0, 3.0}, sum = 9.0, mean = 3.0
     EXPECT_DOUBLE_EQ(timeseries.get_mean(), 3.0);
 }

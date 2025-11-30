@@ -2,6 +2,11 @@
 #include <immintrin.h> // AVX intrinsics
 #include <cstddef>     // size_t
 
+// Fail at compile time if AVX2 isn't enabled
+#ifndef __AVX2__
+static_assert(false, "This project requires AVX2. Compile with -mavx2");
+#endif
+
 /**
  * Calculates sum of an array using AVX2 intrinsics.
  * Constraint: 'data' MUST be aligned to 32-byte boundaries.

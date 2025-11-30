@@ -1,10 +1,14 @@
 #pragma once
 #include "aligned_allocator.hpp"
 #include <vector>
+#include <stdexcept>
 
 class TimeSeries {
 public:
     TimeSeries(size_t max_capacity) : capacity_(max_capacity), head_(0), is_full_(false) {
+        if (max_capacity == 0) {
+            throw std::invalid_argument("capacity must be > 0");
+        }
         data.resize(max_capacity);
     }
     void add_tick(double price);
