@@ -1,0 +1,14 @@
+2025-12-02T11:12:45-06:00
+Running ./build/benchmarks/aos_vs_soa_benchmark
+Run on (12 X 2600 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB
+  L1 Instruction 32 KiB
+  L2 Unified 256 KiB (x6)
+  L3 Unified 12288 KiB
+Load Average: 1.57, 2.10, 2.27
+---------------------------------------------------------------------
+Benchmark           Time             CPU   Iterations UserCounters...
+---------------------------------------------------------------------
+BM_AoS_Sum    1506723 ns      1485143 ns          474 bytes_per_second=2.50837Gi/s items_per_second=673.336M/s
+BM_SoA_Sum    1031104 ns      1024896 ns          644 bytes_per_second=3.6348Gi/s items_per_second=975.709M/s
