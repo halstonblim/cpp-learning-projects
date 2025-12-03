@@ -15,6 +15,11 @@ add_subdirectory(src)
 
 include(FetchContent)
 
+enable_testing()
+FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip)
+FetchContent_MakeAvailable(googletest)
+add_subdirectory(tests)
+
 FetchContent_Declare(
   googlebenchmark
   GIT_REPOSITORY https://github.com/google/benchmark.git
