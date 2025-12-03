@@ -14,21 +14,16 @@ struct AlignedAllocator {
     
     using value_type = T;
 
-    // Tell compiler how to convert AlignedAllocator<T>
-    // to AlignedAllocator<U>
     template <typename U>
     struct rebind {
         using other = AlignedAllocator<U, Alignment>;
     };
 
-    // 1. Default constructor
     AlignedAllocator() noexcept = default;
 
-    // 2. Copy constructor for type U (boilerplate for STL containers)
     template <typename U>
     AlignedAllocator(const AlignedAllocator<U, Alignment>&) noexcept {}
 
-    // 3. Allocate: The core logic
     T* allocate(std::size_t n) {
         if (n == 0) {
             return nullptr;  // Standard behavior for zero-size allocation
@@ -48,7 +43,6 @@ struct AlignedAllocator {
         return static_cast<T*>(ptr);
     }
 
-    // 4. Deallocate: Free the memory
     void deallocate(T* p, std::size_t) noexcept {
         free(p);
     }
