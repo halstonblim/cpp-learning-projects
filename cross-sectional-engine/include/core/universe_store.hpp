@@ -1,5 +1,6 @@
 #pragma once
 #include "core/aligned_allocator.hpp"
+#include "core/seqlock.hpp"
 #include <vector>
 #include <cstdint>
 
@@ -28,6 +29,10 @@ public:
     [[nodiscard]] const float* get_bids() const { return bids_.data(); }
     [[nodiscard]] const float* get_asks() const { return asks_.data(); }
 
+    const Seqlock& seqlock() const {return seqlock_; }
+    void write_lock() {seqlock_.write_lock(); }
+    void write_unlock() {seqlock_.write_unlock(); }
+
     // Const reference is crucial here for correctness and flexibility
     inline void update_tick(const MarketUpdate& update) {
         if (update.asset_id >= capacity_) [[unlikely]] {
@@ -47,4 +52,6 @@ private:
     std::vector<float, AlignedAllocator<float, 32>> volumes_;
     std::vector<float, AlignedAllocator<float, 32>> bids_;
     std::vector<float, AlignedAllocator<float, 32>> asks_;
+
+    Seqlock seqlock_;
 };

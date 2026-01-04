@@ -1,7 +1,6 @@
 #include "ingestion/market_feed.hpp"
 #include <random>
 #include <iostream>
-#include <chrono>
 
 // Constants for our simulation
 static constexpr float INITIAL_PRICE = 100.0f;
@@ -100,7 +99,9 @@ void MarketFeed::consumer_loop() {
         if (update_opt) {
             // B. The Hot Path Update
             // This converts the AoS update to our SoA storage
+            store_.write_lock();
             store_.update_tick(*update_opt);
+            store_.write_unlock();
         } else {
             // Queue empty? Yield to let producer catch up.
             // In low-latency, we might busy-spin here (burn CPU), 

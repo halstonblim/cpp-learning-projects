@@ -3,44 +3,108 @@
 #include <immintrin.h>
 #include <numeric>
 
-float SignalEngine::calculate_total_notional_scalar() const {    
-    const float* prices = store_.get_prices();
-    const float* volumes = store_.get_volumes();
+// =============================================================================
+// Public API - Seqlock Protected
+// =============================================================================
 
+float SignalEngine::calculate_total_notional_scalar() const {    
     float total_notional{};
-    size_t n_assets = store_.size();
-    for (size_t i = 0; i < n_assets; ++i) {
-        total_notional += prices[i] * volumes[i];
-    }
+    uint64_t seq;
+    do {
+        seq = store_.seqlock().read_begin();
+        total_notional = 0.0f;
+        const float* prices = store_.get_prices();
+        const float* volumes = store_.get_volumes();
+        size_t n_assets = store_.size();
+        for (size_t i = 0; i < n_assets; ++i) {
+            total_notional += prices[i] * volumes[i];
+        }
+    } while (store_.seqlock().read_retry(seq));
+
     return total_notional;
 }
 
 float SignalEngine::calculate_total_notional_avx() const {
-    __m256 total_vec = _mm256_setzero_ps();
-    
-    const float* prices = store_.get_prices();
-    const float* volumes = store_.get_volumes();
+    uint64_t seq;
+    float total_notional{};
+    do {
+        seq = store_.seqlock().read_begin();
+        __m256 total_vec = _mm256_setzero_ps();
 
-    size_t i = 0;
-    size_t n_assets = store_.size();
-    for(; i + 8 <= n_assets; i +=8) {
-        __m256 price_vec = _mm256_load_ps(&prices[i]);
-        __m256 volume_vec = _mm256_load_ps(&volumes[i]);
-        total_vec = _mm256_fmadd_ps(volume_vec, price_vec, total_vec);
-    }
+        const float* prices = store_.get_prices();
+        const float* volumes = store_.get_volumes();
 
-    float temp[8];
-    _mm256_storeu_ps(temp, total_vec); 
-    float total_notional = std::accumulate(temp, temp + 8, 0.0f);
+        size_t i = 0;
+        size_t n_assets = store_.size();
+        for(; i + 8 <= n_assets; i +=8) {
+            __m256 price_vec = _mm256_load_ps(&prices[i]);
+            __m256 volume_vec = _mm256_load_ps(&volumes[i]);
+            total_vec = _mm256_fmadd_ps(volume_vec, price_vec, total_vec);
+        }
 
-    for(; i < n_assets; ++i) {
-        total_notional += prices[i] * volumes[i];
-    }    
+        float temp[8];
+        _mm256_storeu_ps(temp, total_vec); 
+        total_notional = std::accumulate(temp, temp + 8, 0.0f);
+
+        for(; i < n_assets; ++i) {
+            total_notional += prices[i] * volumes[i];
+        }    
+    } while (store_.seqlock().read_retry(seq));
 
     return total_notional;
 }
 
 float SignalEngine::calculate_mean_avx() const {
+    size_t n_assets = store_.size();
+    if (n_assets == 0) {
+        return 0.0f;
+    }
+    
+    float mean{};
+    uint64_t seq;
+    do {
+        seq = store_.seqlock().read_begin();
+        mean = mean_internal();
+    } while (store_.seqlock().read_retry(seq));
+
+    return mean;
+}
+
+float SignalEngine::calculate_std_dev_avx(float mean_price) const {
+    size_t n_assets = store_.size();
+    if (n_assets == 0) {
+        return 0.0f;
+    }
+    
+    float std_dev{};
+    uint64_t seq;
+    do {
+        seq = store_.seqlock().read_begin();
+        std_dev = std_dev_internal(mean_price);
+    } while (store_.seqlock().read_retry(seq));
+
+    return std_dev;
+}
+
+void SignalEngine::calculate_zscores_avx(float* out_scores) const {
+    size_t n_assets = store_.size();
+    if (n_assets == 0) {
+        return;
+    } 
+    
+    uint64_t seq;
+    do {
+        seq = store_.seqlock().read_begin();
+        // All three operations use the same snapshot - no nested seqlocks!
+        zscores_internal(out_scores);
+    } while (store_.seqlock().read_retry(seq));
+}
+
+// =============================================================================
+// Internal Implementations - NO seqlock, caller must hold lock
+// =============================================================================
+
+float SignalEngine::mean_internal() const {
     size_t n_assets = store_.size();
     if (n_assets == 0) {
         return 0.0f;
@@ -66,7 +130,7 @@ float SignalEngine::calculate_mean_avx() const {
     return total / static_cast<float>(n_assets);
 }
 
-float SignalEngine::calculate_std_dev_avx(float mean_price) const {
+float SignalEngine::std_dev_internal(float mean_price) const {
     size_t n_assets = store_.size();
     if (n_assets == 0) {
         return 0.0f;
@@ -74,15 +138,13 @@ float SignalEngine::calculate_std_dev_avx(float mean_price) const {
 
     __m256 mean_vec = _mm256_set1_ps(mean_price);
     __m256 variance_vec = _mm256_setzero_ps();
-    __m256 diff_vec;
-    __m256 diffsq_vec;
 
     const float* prices = store_.get_prices();
     size_t i = 0;
     for (; i + 8 <= n_assets; i += 8) {
         __m256 price_vec = _mm256_load_ps(&prices[i]);
-        diff_vec = _mm256_sub_ps(price_vec, mean_vec);
-        diffsq_vec =  _mm256_mul_ps(diff_vec, diff_vec);
+        __m256 diff_vec = _mm256_sub_ps(price_vec, mean_vec);
+        __m256 diffsq_vec = _mm256_mul_ps(diff_vec, diff_vec);
         variance_vec = _mm256_add_ps(diffsq_vec, variance_vec);
     }
 
@@ -97,33 +159,34 @@ float SignalEngine::calculate_std_dev_avx(float mean_price) const {
     return std::sqrt(variance / static_cast<float>(n_assets));
 }
 
-void SignalEngine::calculate_zscores_avx(float* out_scores) const {
+void SignalEngine::zscores_internal(float* out_scores) const {
     size_t n_assets = store_.size();
     if (n_assets == 0) {
         return;
-    } 
+    }
 
-    float mean = calculate_mean_avx();
-    float std_dev = calculate_std_dev_avx(mean);
+    // Compute mean and std_dev on the SAME snapshot (no seqlock here)
+    float mean = mean_internal();
+    float std_dev = std_dev_internal(mean);
+    
+    std::fill(out_scores, out_scores + n_assets, 0.0f);
     if (std_dev == 0.0f) {
-        std::fill(out_scores, out_scores + n_assets, 0.0f);
         return;
     }
+
     float inv_std_dev = 1.0f / std_dev;
-    __m256 diff_vec;
-    __m256 zscore_vec;
     __m256 mean_vec = _mm256_set1_ps(mean);
     __m256 inv_std_vec = _mm256_set1_ps(inv_std_dev);
     const float* prices = store_.get_prices();
+    
     size_t i = 0;
     for (; i + 8 <= n_assets; i += 8) {
         __m256 price_vec = _mm256_load_ps(&prices[i]);
-        diff_vec = _mm256_sub_ps(price_vec, mean_vec);
-        zscore_vec =  _mm256_mul_ps(diff_vec, inv_std_vec);
+        __m256 diff_vec = _mm256_sub_ps(price_vec, mean_vec);
+        __m256 zscore_vec = _mm256_mul_ps(diff_vec, inv_std_vec);
         _mm256_storeu_ps(&out_scores[i], zscore_vec);
     }
     for (; i < n_assets; ++i) {
         out_scores[i] = (prices[i] - mean) * inv_std_dev;
     }
 }
-
