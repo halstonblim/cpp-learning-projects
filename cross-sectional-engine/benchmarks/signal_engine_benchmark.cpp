@@ -10,7 +10,7 @@ void fill_random_data(UniverseStore& store) {
     std::uniform_real_distribution<float> price_dist(10.0f, 1000.0f);
     std::uniform_real_distribution<float> vol_dist(1.0f, 1000.0f);
 
-    for (size_t i = 0; i < store.size(); ++i) {
+    for (size_t i = 0; i < store.capacity(); ++i) {
         store.update_tick({
             static_cast<uint32_t>(i),
             price_dist(gen),

@@ -23,7 +23,7 @@ public:
         asks_.resize(capacity);
     }
 
-    [[nodiscard]] size_t size() const { return capacity_; }   
+    [[nodiscard]] size_t capacity() const { return capacity_; }   
     [[nodiscard]] const float* get_prices() const { return prices_.data(); }
     [[nodiscard]] const float* get_volumes() const { return volumes_.data(); }
     [[nodiscard]] const float* get_bids() const { return bids_.data(); }

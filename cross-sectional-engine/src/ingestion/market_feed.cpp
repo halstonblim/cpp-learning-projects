@@ -44,7 +44,11 @@ void MarketFeed::producer_loop() {
     std::mt19937 gen(std::random_device{}());
     
     // Pick a random stock to update
-    std::uniform_int_distribution<uint32_t> asset_dist(0, store_.size() - 1);
+    // Guard against empty store to prevent underflow
+    if (store_.capacity() == 0) {
+        return;
+    }
+    std::uniform_int_distribution<uint32_t> asset_dist(0, static_cast<uint32_t>(store_.capacity() - 1));
     
     // Random price movement (-0.1% to +0.1%)
     std::uniform_real_distribution<float> price_shock_dist(-VOLATILITY, VOLATILITY);
@@ -54,7 +58,7 @@ void MarketFeed::producer_loop() {
 
     // 2. Initialize "Exchange" State
     // The exchange knows the current price of every asset.
-    std::vector<float> current_prices(store_.size(), INITIAL_PRICE);
+    std::vector<float> current_prices(store_.capacity(), INITIAL_PRICE);
 
     while (running_) {
         // A. Simulate a Trade

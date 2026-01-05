@@ -11,6 +11,7 @@ protected:
 
     void SetUp() override {
         // Fill with deterministic data: 0, 1, 2, ... 15
+        store.write_lock();
         for (size_t i = 0; i < NUM_ASSETS; ++i) {
             store.update_tick({
                 static_cast<uint32_t>(i),
@@ -18,6 +19,7 @@ protected:
                 100.0f, 0.0f, 0.0f
             });
         }
+        store.write_unlock();
     }
 };
 
@@ -31,7 +33,7 @@ TEST_F(SignalEngineTest, MeanCalculationIsCorrect) {
     EXPECT_FLOAT_EQ(actual_mean, expected_mean);
 }
 
-TEST_F(SignalEngineTest, StdDevCalculationIsCorrect) {
+TEST_F(SignalEngineTest, StatsCalculationIsCorrect) {
     float expected_mean{};
     for(size_t i=0; i<NUM_ASSETS; ++i) {
         expected_mean +=  static_cast<float>(i);
@@ -45,9 +47,11 @@ TEST_F(SignalEngineTest, StdDevCalculationIsCorrect) {
     }
     float expected_std_dev = std::sqrt(sum_sq_diff / NUM_ASSETS);
 
-    float actual_std_dev = engine.calculate_std_dev_avx(expected_mean);
+    // Use the new atomic stats API - both computed on the same snapshot
+    PriceStats stats = engine.calculate_stats_avx();
 
-    EXPECT_NEAR(actual_std_dev, expected_std_dev, 1e-5);
+    EXPECT_FLOAT_EQ(stats.mean, expected_mean);
+    EXPECT_NEAR(stats.std_dev, expected_std_dev, 1e-5);
 }
 
 TEST_F(SignalEngineTest, ZScoreIsCorrect) {
