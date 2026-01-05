@@ -1,0 +1,60 @@
+#pragma once
+#include <cstdlib> // for posix_memalign
+#include <new>     // for std::bad_alloc
+#include <limits>  // for std::numeric_limits
+
+/**
+ * A standard-compliant allocator that ensures memory is aligned to N bytes.
+ * Default alignment is 32 bytes (AVX2 width).
+ */
+template <typename T, std::size_t Alignment = 32>
+struct AlignedAllocator {
+    static_assert(Alignment >= sizeof(void*) && (Alignment & (Alignment - 1)) == 0,
+                  "Alignment must be a power of 2 and >= sizeof(void*)");
+    
+    using value_type = T;
+
+    template <typename U>
+    struct rebind {
+        using other = AlignedAllocator<U, Alignment>;
+    };
+
+    AlignedAllocator() noexcept = default;
+
+    template <typename U>
+    AlignedAllocator(const AlignedAllocator<U, Alignment>&) noexcept {}
+
+    T* allocate(std::size_t n) {
+        if (n == 0) {
+            return nullptr;  // Standard behavior for zero-size allocation
+        }
+        if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
+            throw std::bad_alloc();
+        }
+
+        void* ptr = nullptr;
+        // posix_memalign allocates 'n * sizeof(T)' bytes
+        // placed at an address that is a multiple of 'Alignment'.
+        // Returns 0 on success.
+        if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
+            throw std::bad_alloc();
+        }
+
+        return static_cast<T*>(ptr);
+    }
+
+    void deallocate(T* p, std::size_t) noexcept {
+        free(p);
+    }
+};
+
+// Boilerplate comparison operators
+template <typename T, std::size_t AlignT, typename U, std::size_t AlignU>
+bool operator==(const AlignedAllocator<T, AlignT>&, const AlignedAllocator<U, AlignU>&) noexcept { 
+    return AlignT == AlignU; 
+}
+
+template <typename T, std::size_t AlignT, typename U, std::size_t AlignU>
+bool operator!=(const AlignedAllocator<T, AlignT>&, const AlignedAllocator<U, AlignU>&) noexcept { 
+    return AlignT != AlignU; 
+}

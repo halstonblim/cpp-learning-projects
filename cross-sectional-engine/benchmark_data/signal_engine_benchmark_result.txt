@@ -1,0 +1,14 @@
+2025-12-02T18:35:17-06:00
+Running ./build/benchmarks/signal_engine_benchmark
+Run on (12 X 2600 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB
+  L1 Instruction 32 KiB
+  L2 Unified 256 KiB (x6)
+  L3 Unified 12288 KiB
+Load Average: 2.18, 2.79, 2.38
+-----------------------------------------------------------------------------------
+Benchmark                         Time             CPU   Iterations UserCounters...
+-----------------------------------------------------------------------------------
+BM_Signal_Scalar/1000000     997623 ns       996491 ns          625 items_per_second=1.00352G/s
+BM_Signal_AVX/1000000        166445 ns       166338 ns         4175 items_per_second=6.01184G/s

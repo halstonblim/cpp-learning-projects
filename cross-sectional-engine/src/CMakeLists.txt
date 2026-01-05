@@ -1,0 +1,2 @@
+add_executable(signal_engine main.cpp)
+target_link_libraries(signal_engine PRIVATE signal_engine_lib)
