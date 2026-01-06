@@ -49,7 +49,7 @@ namespace Math {
         total += (data[i] - mean) * (data[i] - mean);
     }
 
-    return total / static_cast<float>(size);
+    return std::sqrt(total / static_cast<float>(size));
 }
 
 inline void avx_mult(const float* data1, const float* data2, float* result, size_t size) {
