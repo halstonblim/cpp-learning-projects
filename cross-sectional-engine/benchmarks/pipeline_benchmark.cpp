@@ -29,7 +29,7 @@ public:
 using MyPipeline = SignalPipeline<ZScoreSignal>;
 
 // 3. Benchmark
-BENCHMARK_F(PipelineFixture, BM_Pipeline_ZScore)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(PipelineFixture, BM_Pipeline_ZScore)(benchmark::State& state) {
     MarketSnapshot snap{prices.data(), volumes.data(), NUM_ASSETS};
     float* outputs[] = { output_buffer.data() }; // Array of output pointers
 
@@ -38,9 +38,10 @@ BENCHMARK_F(PipelineFixture, BM_Pipeline_ZScore)(benchmark::State& state) {
         benchmark::DoNotOptimize(output_buffer.data());
     }
 }
+BENCHMARK_REGISTER_F(PipelineFixture, BM_Pipeline_ZScore)->Iterations(10000);
 
 // 4. Compare against Raw Direct Call (Baseline)
-BENCHMARK_F(PipelineFixture, BM_Direct_ZScore)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(PipelineFixture, BM_Direct_ZScore)(benchmark::State& state) {
     MarketSnapshot snap{prices.data(), volumes.data(), NUM_ASSETS};
     
     for (auto _ : state) {
@@ -48,5 +49,6 @@ BENCHMARK_F(PipelineFixture, BM_Direct_ZScore)(benchmark::State& state) {
         benchmark::DoNotOptimize(output_buffer.data());
     }
 }
+BENCHMARK_REGISTER_F(PipelineFixture, BM_Direct_ZScore)->Iterations(10000);
 
 BENCHMARK_MAIN();
