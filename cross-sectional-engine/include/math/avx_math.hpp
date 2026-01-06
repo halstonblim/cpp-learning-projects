@@ -52,4 +52,23 @@ namespace Math {
     return total / static_cast<float>(size);
 }
 
+inline void avx_mult(const float* data1, const float* data2, float* result, size_t size) {
+    if (size == 0) return;
+
+    size_t i = 0;
+
+    // Process 8 floats at a time using AVX
+    for (; i + 8 <= size; i += 8) {
+        __m256 vec1 = _mm256_load_ps(&data1[i]);
+        __m256 vec2 = _mm256_load_ps(&data2[i]);
+        __m256 product = _mm256_mul_ps(vec1, vec2);
+        _mm256_store_ps(&result[i], product);
+    }
+
+    // Handle remaining elements
+    for (; i < size; ++i) {
+        result[i] = data1[i] * data2[i];
+    }
+}
+
 } // namspace Math
