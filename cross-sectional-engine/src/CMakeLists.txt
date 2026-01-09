@@ -6,3 +6,6 @@ target_link_libraries(backtest_sector PRIVATE signal_engine_lib)
 
 add_executable(market_feed_test main_feed.cpp)
 target_link_libraries(market_feed_test PRIVATE signal_engine_lib)
+
+add_executable(live_trading main_live.cpp)
+target_link_libraries(live_trading PRIVATE signal_engine_lib)

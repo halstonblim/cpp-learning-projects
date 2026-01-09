@@ -13,7 +13,7 @@ private:
     std::vector<float, AlignedAllocator<float, 32>> returns_;
     std::vector<float, AlignedAllocator<float, 32>> zscores_;
     std::vector<float, AlignedAllocator<float, 32>> signals_;
-    std::vector<float> pnl_series_;
+    std::vector<float, AlignedAllocator<float, 32>> pnl_series_;
     size_t num_periods_;
     size_t num_assets_;
 };
