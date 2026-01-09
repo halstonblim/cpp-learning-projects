@@ -3,8 +3,8 @@
 #include <iomanip>
 
 int main() {
-    constexpr size_t NUM_ASSETS = 1024;
-    constexpr size_t NUM_PERIODS = 1000;
+    constexpr size_t NUM_ASSETS = 2048;
+    constexpr size_t NUM_PERIODS = 100000;
 
     Backtester bt(NUM_ASSETS, NUM_PERIODS);
     StrategyMetrics metrics = bt.run();
