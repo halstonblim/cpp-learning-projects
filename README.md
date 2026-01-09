@@ -10,7 +10,8 @@ A collection of high-performance computing and quantitative finance projects usi
 | | **[Market Data Processor](./market-data-processor)** | Low-latency benchmarking of Lock-Free vs. Lock-Based queues. |
 | **HPC** | **[SIMD Time Series](./simd-timeseries)** | Statistical engine optimized with AVX2 intrinsics (4x speedup). |
 | | **[Online Statistics](./online-stats)** | Header-only library for memory-efficient running statistics using Welford's algorithm. |
-| **Quant Finance** | **[DerivLib](./derivlib)** | Extensible Monte Carlo library for derivatives pricing with variance reduction. |
+| **Quant Finance** | **[Cross-Sectional Engine](./cross-sectional-engine)** | C++20 backtesting engine and market sim for cross-sectional equity strategies with AVX2 SIMD, seqlock, and SPSC queues. |
+| | **[DerivLib](./derivlib)** | Extensible Monte Carlo library for derivatives pricing with variance reduction. |
 | | **[MC Option Pricer](./mc-option-pricer)** | Standalone European Call option pricer validating Black-Scholes. |
 
 ## Quick Build
