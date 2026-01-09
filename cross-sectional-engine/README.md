@@ -12,6 +12,7 @@ A high-performance C++20 backtesting engine for cross-sectional equity strategie
 - [Benchmarks](#benchmarks)
 - [Architecture](#architecture)
   - [Market Feed (Live Simulation)](#market-feed-live-simulation)
+  - [Live Trading Loop](#live-trading-loop-main_livecpp)
   - [Backtester (Historical Simulation)](#backtester-historical-simulation)
   - [Shared Infrastructure](#shared-infrastructure)
 
@@ -63,15 +64,20 @@ Requires: CMake 3.20+, C++20 compiler with AVX2/FMA support.
 
 ## Running
 
+From the `build/` directory:
+
 ```bash
 # Global backtest
-./bin/backtest_global
+./src/backtest_global
 
 # Sector-neutral backtest  
-./bin/backtest_sector
+./src/backtest_sector
 
 # Market feed throughput test
-./bin/market_feed_test
+./src/market_feed_test
+
+# Live trading simulation
+./src/live_trading
 ```
 
 ## Tests
@@ -82,6 +88,8 @@ ctest --output-on-failure
 
 ## Benchmarks
 
+From the `build/` directory:
+
 ```bash
 ./benchmarks/signal_engine_benchmark
 ./benchmarks/aos_vs_soa_benchmark
@@ -90,11 +98,12 @@ ctest --output-on-failure
 
 ## Architecture
 
-The engine supports two operating modes that share common infrastructure:
+The engine supports three operating modes that share common infrastructure:
 
 | Mode | Purpose | Data Source | Concurrency | Use Case |
 |------|---------|-------------|-------------|----------|
 | **Market Feed** | Live simulation | Producer thread generates ticks | Multi-threaded (producer/consumer/readers) | Throughput testing, live trading prototype |
+| **Live Trading** | Real-time signals | Market feed + signal loop | Multi-threaded (feed + trading loop) | Latency benchmarking, live system prototype |
 | **Backtester** | Historical simulation | Synthetic price series in memory | Single-threaded loop | Strategy research, P&L analysis |
 
 Both modes use the same AVX2 math primitives and signal computation logic, but differ in how data flows through the system.
@@ -124,6 +133,56 @@ Both modes use the same AVX2 math primitives and signal computation logic, but d
 ```
 
 The producer simulates market ticks and pushes `MarketUpdate` structs to a lock-free queue. The consumer pops updates and writes them to SoA storage under seqlock protection. Readers (signal engines) can concurrently snapshot and compute signals via seqlock retry loop without blocking the writer.
+
+### Live Trading Loop (`main_live.cpp`)
+
+The live trading simulation combines the market feed infrastructure with real-time signal computation in a high-frequency trading loop:
+
+```
++------------------+                              +------------------+
+|   Market Feed    |                              |  Trading Loop    |
+|  (Background)    |                              |   (Main Thread)  |
++------------------+                              +------------------+
+        |                                                  |
+        v                                                  |
++-------------------+     seqlock snapshot      +----------+---------+
+|  UniverseStore    |<--------------------------|   SignalEngine     |
+|   (SoA Data)      |                           |  calculate_zscores |
++-------------------+                           +--------------------+
+                                                           |
+                                                           v
+                                                +--------------------+
+                                                |   ZScoreStrategy   |
+                                                |  BUY/SELL/HOLD     |
+                                                +--------------------+
+                                                           |
+                                                           v
+                                                +--------------------+
+                                                |   LiveMetrics      |
+                                                |  latency, signals  |
+                                                +--------------------+
+```
+
+**Key characteristics:**
+
+- **Fixed-rate signal generation**: Configurable interval (default 100μs = 10kHz)
+- **Non-blocking reads**: Signal computation reads from `UniverseStore` via seqlock without blocking the market data consumer
+- **Real-time metrics**: Tracks per-cycle latency (mean, p50, p99, p99.9) and signal distribution
+- **Pre-allocated buffers**: All memory allocated upfront to avoid allocation jitter during the hot loop
+
+**Sample output:**
+```
+Signal Computation Latency:
+  Mean:        1329.55 μs
+  p50:          495.58 μs
+  p99:         8870.49 μs
+  p99.9:      12751.80 μs
+
+Signal Distribution:
+  Buy Signals:  1.37%
+  Sell Signals: 3.15%
+  Hold Signals: 95.48%
+```
 
 ### Backtester (Historical Simulation)
 
@@ -162,25 +221,6 @@ The producer simulates market ticks and pushes `MarketUpdate` structs to a lock-
                                                               +---------------------------+
 ```
 
-**Global vs Sector Backtester:**
-
-```
-Global Backtest:                      Sector Backtest:
-
-prices[] ---------------------->      prices[] ---> sort_to_sector_order()
-    |                                                       |
-    v                                                       v
-ZScoreSignal (global mean/std)        SectorNeutralSignal (per-sector mean/std)
-    |                                                       |
-    v                                                       v
-zscores[] ------------------->        sorted_zscores[] ---> unsort_from_sector_order()
-                                                            |
-                                                            v
-                                                      zscores[]
-```
-
-Sector-neutral signals group assets by sector for contiguous AVX operations, then unsort results back to original order.
-
 ### Shared Infrastructure
 
 Both modes reuse the same core components:
@@ -210,4 +250,5 @@ Both modes reuse the same core components:
 
 The key difference is data flow:
 - **Market Feed**: Async producer -> queue -> consumer -> UniverseStore -> SignalEngine reads via seqlock
+- **Live Trading**: Market Feed (background) + fixed-rate signal loop reading via seqlock -> strategy -> metrics
 - **Backtester**: Synchronous loop generates prices directly into aligned buffers, calls signals inline

@@ -3,6 +3,7 @@
 #include "math/avx_math.hpp"
 
 // Computes z-scores relative to sector mean (prices must be sector-sorted)
+// Uses unaligned AVX since sector boundaries may not be 32-byte aligned
 struct SectorNeutralSignal {
     static void calculate(
         const float* sorted_prices,
@@ -14,9 +15,9 @@ struct SectorNeutralSignal {
             size_t start = sector_index.sector_start(i);
             size_t size = sector_index.sector_end(i) - start;
 
-            float mean = Math::avx_mean(&sorted_prices[start], size);
-            float std = Math::avx_std_dev(&sorted_prices[start], size, mean);
-            Math::avx_zscore(&sorted_prices[start], size, mean, std, &output[start]);
+            float mean = Math::avx_mean_unaligned(&sorted_prices[start], size);
+            float std = Math::avx_std_dev_unaligned(&sorted_prices[start], size, mean);
+            Math::avx_zscore_unaligned(&sorted_prices[start], size, mean, std, &output[start]);
         }
     }
 };
