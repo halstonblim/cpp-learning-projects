@@ -2,6 +2,7 @@
 #include <immintrin.h>
 #include <numeric>
 #include <cstddef>
+#include <algorithm>
 
 namespace Math {
 
@@ -112,6 +113,34 @@ inline void avx_mult(const float* data1, const float* data2, float* result, size
     }
 
     return total;
+}
+
+inline void avx_zscore(const float* data, size_t size, float mean, float std_dev, float* output) {
+    if (size == 0) return;
+
+    // Handle zero std_dev case
+    if (std_dev == 0.0f) {
+        std::fill(output, output + size, 0.0f);
+        return;
+    }
+
+    float inv_std_dev = 1.0f / std_dev;
+
+    __m256 mean_vec = _mm256_set1_ps(mean);
+    __m256 inv_std_vec = _mm256_set1_ps(inv_std_dev);
+
+    size_t i = 0;
+    for (; i + 8 <= size; i += 8) {
+        __m256 data_vec = _mm256_load_ps(&data[i]);
+        __m256 diff_vec = _mm256_sub_ps(data_vec, mean_vec);
+        __m256 zscore_vec = _mm256_mul_ps(diff_vec, inv_std_vec);
+        _mm256_storeu_ps(&output[i], zscore_vec);
+    }
+
+    // Tail handling
+    for (; i < size; ++i) {
+        output[i] = (data[i] - mean) * inv_std_dev;
+    }
 }
 
 } // namspace Math
