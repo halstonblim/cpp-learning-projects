@@ -1,10 +1,10 @@
-#include "backtest/backtester.hpp"
+#include "backtest/backtester_global.hpp"
 #include "strategy/pnl_calculator.hpp"
 #include "strategy/zscore_strategy.hpp"
 #include "signals/zscore_signal.hpp"
 #include <random>
 
-Backtester::Backtester(size_t num_assets, size_t num_periods) : num_periods_{num_periods}, num_assets_{num_assets} {
+BacktesterGlobal::BacktesterGlobal(size_t num_assets, size_t num_periods) : num_periods_{num_periods}, num_assets_{num_assets} {
     prev_prices_.resize(num_assets);
     curr_prices_.resize(num_assets);
     returns_.resize(num_assets);
@@ -13,7 +13,7 @@ Backtester::Backtester(size_t num_assets, size_t num_periods) : num_periods_{num
     pnl_series_.resize(num_periods);
 }
 
-StrategyMetrics Backtester::run() {
+StrategyMetrics BacktesterGlobal::run() {
 
     std::mt19937 gen(42);
     std::uniform_real_distribution<float> initial(10.0f, 100.0f);

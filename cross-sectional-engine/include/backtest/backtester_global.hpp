@@ -2,9 +2,9 @@
 #include "strategy/pnl_calculator.hpp"
 #include "core/aligned_allocator.hpp"
 
-class Backtester {
+class BacktesterGlobal {
 public:
-    Backtester(size_t num_assets, size_t num_periods);
+    BacktesterGlobal(size_t num_assets, size_t num_periods);
     
     // Run the backtest, returns metrics
     StrategyMetrics run();

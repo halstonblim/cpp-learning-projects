@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include_directories(include)
 
-add_library(signal_engine_lib src/ingestion/market_feed.cpp src/compute/signal_engine.cpp src/backtest/backtester.cpp src/core/sector_index.cpp)
+add_library(signal_engine_lib src/ingestion/market_feed.cpp src/compute/signal_engine.cpp src/backtest/backtester_global.cpp src/backtest/backtester_sector.cpp src/core/sector_index.cpp)
 target_include_directories(signal_engine_lib PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_compile_options(signal_engine_lib PUBLIC -mavx2 -mfma)
 

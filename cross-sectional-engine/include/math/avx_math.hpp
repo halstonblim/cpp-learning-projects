@@ -33,7 +33,7 @@ inline void avx_return(const float* current, const float* previous, float* resul
     size_t i = 0;
 
     for(; i + 8 <= size; i += 8) {
-        __m256 vec = _mm256_load_ps(&data[i]);
+        __m256 vec = _mm256_loadu_ps(&data[i]);
         total_vec = _mm256_add_ps(vec, total_vec);
     }
 
@@ -56,7 +56,7 @@ inline void avx_return(const float* current, const float* previous, float* resul
     size_t i = 0;
 
     for (; i + 8 <= size; i += 8) {
-        __m256 val = _mm256_load_ps(&data[i]);
+        __m256 val = _mm256_loadu_ps(&data[i]);
         __m256 diff = _mm256_sub_ps(val, mean_vec);
         __m256 diff_sq = _mm256_mul_ps(diff, diff);
         var_vec = _mm256_add_ps(diff_sq, var_vec);
@@ -131,7 +131,7 @@ inline void avx_zscore(const float* data, size_t size, float mean, float std_dev
 
     size_t i = 0;
     for (; i + 8 <= size; i += 8) {
-        __m256 data_vec = _mm256_load_ps(&data[i]);
+        __m256 data_vec = _mm256_loadu_ps(&data[i]);
         __m256 diff_vec = _mm256_sub_ps(data_vec, mean_vec);
         __m256 zscore_vec = _mm256_mul_ps(diff_vec, inv_std_vec);
         _mm256_storeu_ps(&output[i], zscore_vec);
