@@ -16,3 +16,4 @@ Testing/
 
 # test executables
 *_test
+profiler_data/
