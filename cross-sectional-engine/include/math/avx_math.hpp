@@ -77,16 +77,12 @@ inline void avx_mult(const float* data1, const float* data2, float* result, size
     if (size == 0) return;
 
     size_t i = 0;
-
-    // Process 8 floats at a time using AVX
     for (; i + 8 <= size; i += 8) {
         __m256 vec1 = _mm256_load_ps(&data1[i]);
         __m256 vec2 = _mm256_load_ps(&data2[i]);
         __m256 product = _mm256_mul_ps(vec1, vec2);
         _mm256_store_ps(&result[i], product);
     }
-
-    // Handle remaining elements
     for (; i < size; ++i) {
         result[i] = data1[i] * data2[i];
     }
@@ -101,7 +97,7 @@ inline void avx_mult(const float* data1, const float* data2, float* result, size
     for (; i + 8 <= size; i += 8) {
         __m256 vec1 = _mm256_load_ps(&data1[i]);
         __m256 vec2 = _mm256_load_ps(&data2[i]);
-        sum_vec = _mm256_fmadd_ps(vec1, vec2, sum_vec);  // fused multiply-add
+        sum_vec = _mm256_fmadd_ps(vec1, vec2, sum_vec);
     }
 
     float temp[8];
@@ -118,14 +114,12 @@ inline void avx_mult(const float* data1, const float* data2, float* result, size
 inline void avx_zscore(const float* data, size_t size, float mean, float std_dev, float* output) {
     if (size == 0) return;
 
-    // Handle zero std_dev case
     if (std_dev == 0.0f) {
         std::fill(output, output + size, 0.0f);
         return;
     }
 
     float inv_std_dev = 1.0f / std_dev;
-
     __m256 mean_vec = _mm256_set1_ps(mean);
     __m256 inv_std_vec = _mm256_set1_ps(inv_std_dev);
 
@@ -136,11 +130,9 @@ inline void avx_zscore(const float* data, size_t size, float mean, float std_dev
         __m256 zscore_vec = _mm256_mul_ps(diff_vec, inv_std_vec);
         _mm256_storeu_ps(&output[i], zscore_vec);
     }
-
-    // Tail handling
     for (; i < size; ++i) {
         output[i] = (data[i] - mean) * inv_std_dev;
     }
 }
 
-} // namspace Math
+} // namespace Math

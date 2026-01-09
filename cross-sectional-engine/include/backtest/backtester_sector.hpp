@@ -6,13 +6,10 @@
 
 class BacktesterSector {
 public:
-    // New constructor that accepts sector configuration
     BacktesterSector(size_t num_assets, size_t num_periods, size_t num_sectors);
-    
     StrategyMetrics run();
     
 private:
-    // Existing buffers...
     std::vector<float, AlignedAllocator<float, 32>> prev_prices_;
     std::vector<float, AlignedAllocator<float, 32>> curr_prices_;
     std::vector<float, AlignedAllocator<float, 32>> returns_;
@@ -28,7 +25,6 @@ private:
     size_t num_assets_;
     size_t num_sectors_;
     
-    // NEW: Helper methods
     void sort_to_sector_order(const float* src, float* dst);
     void unsort_from_sector_order(const float* src, float* dst);
 };

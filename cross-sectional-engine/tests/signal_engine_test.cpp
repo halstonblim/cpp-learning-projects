@@ -10,7 +10,6 @@ protected:
     SignalEngine engine{store};
 
     void SetUp() override {
-        // Fill with deterministic data: 0, 1, 2, ... 15
         store.write_lock();
         for (size_t i = 0; i < NUM_ASSETS; ++i) {
             store.update_tick({
@@ -47,7 +46,6 @@ TEST_F(SignalEngineTest, StatsCalculationIsCorrect) {
     }
     float expected_std_dev = std::sqrt(sum_sq_diff / NUM_ASSETS);
 
-    // Use the new atomic stats API - both computed on the same snapshot
     PriceStats stats = engine.calculate_stats_avx();
 
     EXPECT_FLOAT_EQ(stats.mean, expected_mean);

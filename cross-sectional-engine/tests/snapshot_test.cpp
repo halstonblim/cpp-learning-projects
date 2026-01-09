@@ -7,14 +7,13 @@
 
 class TestableSignalEngine : public SignalEngine {
 public:
-    using SignalEngine::SignalEngine;  // Inherit constructor
+    using SignalEngine::SignalEngine;
     
-    // Expose snapshot for testing
     bool verify_snapshot_consistency() {
-        snapshot();  // protected and accessible
+        snapshot();
         for (size_t i = 0; i < snapshot_size_; ++i) {
             if (snapshot_prices_[i] != snapshot_volumes_[i]) {
-                return false;  // Torn read detected!
+                return false;
             }
         }
         return true;
@@ -33,7 +32,6 @@ TEST_F(SignalEngineSnapshotTest, StressTestSnapshotConsistency) {
     std::atomic<bool> writer_done{false};
     std::atomic<bool> torn_read_detected{false};
 
-    // Writer thread: spams updates with price = volume = tick
     std::jthread writer([&] {
         for (uint32_t tick = 0; tick < NUM_ITERATIONS; ++tick) {
             float tick_value = static_cast<float>(tick);
@@ -47,7 +45,6 @@ TEST_F(SignalEngineSnapshotTest, StressTestSnapshotConsistency) {
         writer_done = true;
     });
 
-    // Reader thread: verifies snapshot consistency
     std::jthread reader([&] {
         while (!writer_done) {
             if (!engine.verify_snapshot_consistency()) {
@@ -57,7 +54,5 @@ TEST_F(SignalEngineSnapshotTest, StressTestSnapshotConsistency) {
         }
     });
 
-    // jthreads auto-join when they go out of scope
-
-    EXPECT_FALSE(torn_read_detected) << "Torn read detected! Snapshot is not atomic.";
+    EXPECT_FALSE(torn_read_detected) << "Torn read detected";
 }

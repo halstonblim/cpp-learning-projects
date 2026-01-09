@@ -4,10 +4,6 @@
 #include <numeric>
 #include <cstring>
 
-// =============================================================================
-// Public API - Seqlock Protected
-// =============================================================================
-
 float SignalEngine::calculate_total_notional_scalar() const {    
     float total_notional{};
     uint64_t seq;
@@ -37,7 +33,7 @@ float SignalEngine::calculate_total_notional_avx() const {
 
         size_t i = 0;
         size_t n_assets = store_.capacity();
-        for(; i + 8 <= n_assets; i +=8) {
+        for (; i + 8 <= n_assets; i += 8) {
             __m256 price_vec = _mm256_load_ps(&prices[i]);
             __m256 volume_vec = _mm256_load_ps(&volumes[i]);
             total_vec = _mm256_fmadd_ps(volume_vec, price_vec, total_vec);
@@ -47,7 +43,7 @@ float SignalEngine::calculate_total_notional_avx() const {
         _mm256_storeu_ps(temp, total_vec); 
         total_notional = std::accumulate(temp, temp + 8, 0.0f);
 
-        for(; i < n_assets; ++i) {
+        for (; i < n_assets; ++i) {
             total_notional += prices[i] * volumes[i];
         }    
     } while (store_.seqlock().read_retry(seq));
@@ -60,13 +56,9 @@ PriceStats SignalEngine::calculate_stats_avx() const {
     if (n_assets == 0) {
         return PriceStats{};
     }
-    
-    snapshot(); // Snapshot prices and volumes in seqlock
-    
-    // Compute both stats on the SAME snapshot - guarantees consistency
+    snapshot();
     float mean = mean_internal();
     float std_dev = std_dev_internal(mean);
-    
     return PriceStats{mean, std_dev};
 }
 
@@ -75,9 +67,8 @@ float SignalEngine::calculate_mean_avx() const {
     if (n_assets == 0) {
         return 0.0f;
     }
-    
-    snapshot(); // Snapshot prices and volumes in seqlock
-    return mean_internal(); // Compute outside seqlock using local-thread buffer
+    snapshot();
+    return mean_internal();
 }
 
 void SignalEngine::calculate_zscores_avx(float* out_scores) const {
@@ -85,15 +76,9 @@ void SignalEngine::calculate_zscores_avx(float* out_scores) const {
     if (n_assets == 0) {
         return;
     } 
-
-    
-    snapshot(); // Snapshot prices and volumes in seqlock
-    zscores_internal(out_scores); // Compute outside seqlock using local-thread buffer
+    snapshot();
+    zscores_internal(out_scores);
 }
-
-// =============================================================================
-// Internal Implementations - NO seqlock, caller must hold lock
-// =============================================================================
 
 float SignalEngine::mean_internal() const {
     if (snapshot_size_ == 0) {
@@ -153,7 +138,6 @@ void SignalEngine::zscores_internal(float* out_scores) const {
         return;
     }
 
-    // Compute mean and std_dev on the SAME snapshot (no seqlock here)
     float mean = mean_internal();
     float std_dev = std_dev_internal(mean);
     
@@ -179,12 +163,7 @@ void SignalEngine::zscores_internal(float* out_scores) const {
     }
 }
 
-// =============================================================================
-// Snapshot - The ONLY thing inside the seqlock loop
-// =============================================================================
-
 void SignalEngine::snapshot() const {
-    // Pre-allocate to capacity to avoid allocation in seqlock loop
     size_t cap = store_.capacity();
     if (snapshot_prices_.size() < cap) {
         snapshot_prices_.resize(cap);
@@ -194,8 +173,6 @@ void SignalEngine::snapshot() const {
     uint64_t seq;
     do {
         seq = store_.seqlock().read_begin();
-        
-        // Read capacity inside seqlock to ensure consistency with data
         size_t n_assets = store_.capacity();
         std::memcpy(snapshot_prices_.data(), store_.get_prices(), n_assets * sizeof(float));
         std::memcpy(snapshot_volumes_.data(), store_.get_volumes(), n_assets * sizeof(float));
