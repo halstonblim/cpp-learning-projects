@@ -1,8 +1,10 @@
 #include "core/sector_index.hpp"
 
 SectorIndex::SectorIndex(size_t num_assets, size_t num_sectors, 
-                        const std::vector<uint32_t>& sector_assignments) 
-: sector_offsets_(num_sectors+1,0), asset_to_sorted_(num_assets)
+                         const std::vector<uint32_t>& sector_assignments) 
+: num_sectors_(num_sectors),
+  sector_offsets_(num_sectors+1,0), 
+  asset_to_sorted_(num_assets)
 {
     for (uint32_t sector_id : sector_assignments) ++sector_offsets_[sector_id + 1];
     for (size_t i = 1; i <= num_sectors; ++i) sector_offsets_[i] += sector_offsets_[i - 1];
