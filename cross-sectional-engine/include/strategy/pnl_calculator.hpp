@@ -22,7 +22,7 @@ struct StrategyMetrics {
     float sharpe_ratio;
 };
 
-static StrategyMetrics calculate_metrics(
+inline StrategyMetrics calculate_metrics(
     const float* pnl_series,  // PnL per timestep (not per asset!)
     size_t num_periods,
     float risk_free_rate = 0.0f
