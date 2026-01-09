@@ -16,3 +16,23 @@ struct PnLCalculator {
         return Math::avx_dot_product(signals, returns, n);
     }
 };
+
+struct StrategyMetrics {
+    float total_pnl;
+    float sharpe_ratio;
+};
+
+static StrategyMetrics calculate_metrics(
+    const float* pnl_series,  // PnL per timestep (not per asset!)
+    size_t num_periods,
+    float risk_free_rate = 0.0f
+) {
+    float mean_pnl = Math::avx_mean(pnl_series, num_periods);
+    float std_pnl = Math::avx_std_dev(pnl_series, num_periods, mean_pnl);
+    float total_pnl = mean_pnl * static_cast<float>(num_periods);
+    float sharpe = (std_pnl > 0.0f)
+        ? (mean_pnl - risk_free_rate) / std_pnl
+        : 0.0f;
+    return {total_pnl, sharpe};
+
+}
