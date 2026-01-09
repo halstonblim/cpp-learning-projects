@@ -29,16 +29,14 @@ public:
     [[nodiscard]] const float* get_bids() const { return bids_.data(); }
     [[nodiscard]] const float* get_asks() const { return asks_.data(); }
 
-    const Seqlock& seqlock() const {return seqlock_; }
-    void write_lock() {seqlock_.write_lock(); }
-    void write_unlock() {seqlock_.write_unlock(); }
+    const Seqlock& seqlock() const { return seqlock_; }
+    void write_lock() { seqlock_.write_lock(); }
+    void write_unlock() { seqlock_.write_unlock(); }
 
-    // Const reference is crucial here for correctness and flexibility
     inline void update_tick(const MarketUpdate& update) {
         if (update.asset_id >= capacity_) [[unlikely]] {
             return;
         }
-        // No bounds checking on vectors for speed (we trusted asset_id above)
         prices_[update.asset_id] = update.price;
         volumes_[update.asset_id] = update.volume;
         bids_[update.asset_id] = update.bid;
@@ -47,7 +45,6 @@ public:
 
 private:
     size_t capacity_;
-    // 32-byte alignment for AVX2
     std::vector<float, AlignedAllocator<float, 32>> prices_;
     std::vector<float, AlignedAllocator<float, 32>> volumes_;
     std::vector<float, AlignedAllocator<float, 32>> bids_;

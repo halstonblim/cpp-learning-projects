@@ -3,10 +3,7 @@
 #include <new>     // for std::bad_alloc
 #include <limits>  // for std::numeric_limits
 
-/**
- * A standard-compliant allocator that ensures memory is aligned to N bytes.
- * Default alignment is 32 bytes (AVX2 width).
- */
+// 32-byte aligned allocator for AVX2
 template <typename T, std::size_t Alignment = 32>
 struct AlignedAllocator {
     static_assert(Alignment >= sizeof(void*) && (Alignment & (Alignment - 1)) == 0,
@@ -26,16 +23,13 @@ struct AlignedAllocator {
 
     T* allocate(std::size_t n) {
         if (n == 0) {
-            return nullptr;  // Standard behavior for zero-size allocation
+            return nullptr;
         }
         if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
             throw std::bad_alloc();
         }
 
         void* ptr = nullptr;
-        // posix_memalign allocates 'n * sizeof(T)' bytes
-        // placed at an address that is a multiple of 'Alignment'.
-        // Returns 0 on success.
         if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
             throw std::bad_alloc();
         }
@@ -48,7 +42,6 @@ struct AlignedAllocator {
     }
 };
 
-// Boilerplate comparison operators
 template <typename T, std::size_t AlignT, typename U, std::size_t AlignU>
 bool operator==(const AlignedAllocator<T, AlignT>&, const AlignedAllocator<U, AlignU>&) noexcept { 
     return AlignT == AlignU; 

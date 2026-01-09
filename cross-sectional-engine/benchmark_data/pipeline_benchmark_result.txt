@@ -1,0 +1,14 @@
+2026-01-06T10:57:53-06:00
+Running ./build/benchmarks/pipeline_benchmark
+Run on (12 X 2600 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB
+  L1 Instruction 32 KiB
+  L2 Unified 256 KiB (x6)
+  L3 Unified 12288 KiB
+Load Average: 1.78, 2.61, 2.48
+---------------------------------------------------------------------------------------
+Benchmark                                             Time             CPU   Iterations
+---------------------------------------------------------------------------------------
+PipelineFixture/BM_Pipeline/iterations:10000     927649 ns       926318 ns        10000
+PipelineFixture/BM_Direct/iterations:10000       897076 ns       896049 ns        10000
